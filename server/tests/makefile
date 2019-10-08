@@ -9,7 +9,8 @@ HEADERS := $(wildcard ../*.h)
 %.c: $(HEADERS)
 
 %.o: %.c $(HEADERS)
-	$(CC) -Wall -Werror -g -std=gnu99 $(CFLAGS) -c $*.c -o $*.o
+#	$(CC) -Wall -Werror -g -std=gnu99 $(CFLAGS) -c $*.c -o $*.o
+	$(CC) -Wall -g -std=gnu99 $(CFLAGS) -c $*.c -o $*.o
 
 test: $(OBJS)
 	$(CC) -Wall -Werror -g $(OBJS) -ldl -lpthread -o run_tests

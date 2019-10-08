@@ -118,7 +118,7 @@ static void *request_handler(enum mg_event event,
 #ifdef __APPLE__
 static void get_local_address() {
     struct ifaddrs* iflist;
-    char *if_name= "en0";
+    char *if_name= "en7";
     char buf[INET6_ADDRSTRLEN];
 
     if (getifaddrs(&iflist) == 0) {

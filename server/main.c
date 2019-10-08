@@ -106,6 +106,7 @@ void signalHandler(int signal)
  * name) and command line (if needed).
  * Implementors can override this function with an equivalent.
  */
+#ifndef __APPLE__
 int isAppRunning( char *pzName, char *pzCommandPattern ) {
   DIR* proc_fd = opendir("/proc");
   if( proc_fd != NULL ) {
@@ -159,6 +160,34 @@ int isAppRunning( char *pzName, char *pzCommandPattern ) {
   }
   return 0;
 }
+#else
+#import <sys/proc_info.h>
+#import <libproc.h>
+
+int isAppRunning( char *pzName, char * pzCommandPattern ) {
+  int numberOfProcesses = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0);
+  pid_t pids[numberOfProcesses];
+  bzero(pids, sizeof(pids));
+  proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
+  for (int i = 0; i < numberOfProcesses; ++i) {
+    if (pids[i] == 0)
+      continue;
+    
+    char pathBuffer[PROC_PIDPATHINFO_MAXSIZE];
+    
+    bzero(pathBuffer, PROC_PIDPATHINFO_MAXSIZE);
+    proc_name(pids[i], pathBuffer, sizeof(pathBuffer));
+
+    if (!strcmp(pzName, pathBuffer))
+      return pids[i];
+
+    // TODO - support pzCommandPattern
+    //bzero(pathBuffer, PROC_PIDPATHINFO_MAXSIZE);
+    //proc_pidpath(pids[i], pathBuffer, sizeof(pathBuffer));
+  }
+  return 0;
+}
+#endif
 
 pid_t runApplication( const char * const args[], DIAL_run_t *run_id ) {
   pid_t pid = fork();

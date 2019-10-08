@@ -87,7 +87,8 @@ void netflix_stop(DIALServer *ds, const char *appname, DIAL_run_t run_id,
     pid = isAppRunning( spAppNetflix, NULL );
     if( pid ){
             printf("Killing pid %d\n", pid);
-            kill((pid_t)pid, SIGTERM);
+            //kill((pid_t)pid, SIGTERM);
+            kill((pid_t)pid, SIGKILL);
             waitpid((pid_t)pid, NULL, 0); // reap child
         }
 }
