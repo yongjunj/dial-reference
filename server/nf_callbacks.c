@@ -59,7 +59,18 @@ DIALStatus netflix_start(DIALServer *ds, const char *appname,
     // if its not running, launch it.  The Netflix application should
     // never be relaunched
     if( !appPid ){
-        const char * const netflix_args[] = {spNetflix, "-Q", sQueryParam, 0};
+        const char * const netflix_args[] = {
+            spNetflix,
+            "-I",
+            "/Users/yjeon/workspace/idfile",
+            //"/Users/yjeon/.pvm/installed/localnrdp/dev/gibbon/data/idfile.tofu",
+            //"--dpi-tofu",
+            "--dpi-tts-ivona-certificate",
+            "/usr/local/lib/node_modules/@nrdp/nf-pvm/extras/tts_ivona.cert",
+            "-Q",
+            sQueryParam,
+            0
+        };
         return runApplication( netflix_args, run_id );
     }
     else return kDIALStatusRunning;
