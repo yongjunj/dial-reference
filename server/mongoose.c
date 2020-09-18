@@ -35,7 +35,8 @@
 #include <stdio.h>
 
 #ifndef BUFSIZ
-#define BUFSIZ  4096
+//#define BUFSIZ  4096
+#define BUFSIZ  8192
 #endif
 
 #define MAX_REQUEST_SIZE 4096
