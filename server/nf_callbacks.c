@@ -47,6 +47,8 @@ static char *defaultLaunchParam = "source_type=12";
 // dial_server.c ensures the additional data URL is <= DIAL_MAX_ADDITIONALURL.
 static char sQueryParam[3 * DIAL_MAX_PAYLOAD + DIAL_MAX_ADDITIONALURL + 40];
 
+static int sIsSuspended = 0;
+
 int isAppRunning( char *pzName, char *pzCommandPattern );
 int shouldRelaunch(DIALServer *pServer, const char *pAppName, const char *args );
 pid_t runApplication( const char * const args[], DIAL_run_t *run_id );
@@ -96,19 +98,43 @@ DIALStatus netflix_start(DIALServer *ds, const char *appname,
           shouldRelaunchApp?"TRUE":"FALSE",
           sQueryParam );
 
+    DIALStatus ret;
+
     // if its not running, launch it.  The Netflix application should
     // never be relaunched
     if( !appPid ){
         const char * const netflix_args[] = {spNetflix, "-Q", sQueryParam, 0};
         return runApplication( netflix_args, run_id );
     }
-    else return kDIALStatusRunning;
+    else {
+      if (sIsSuspended) {
+        // NOTE - you may need to co "nc -q1 ..." to ensure Gibbon receives the command
+        system("echo '/resources visibility graphics' | nc localhost 9536");
+        sIsSuspended = 0;
+      }
+      ret = kDIALStatusRunning;
+    }
+
+    return ret;
 }
 
 DIALStatus netflix_hide(DIALServer *ds, const char *app_name,
                                DIAL_run_t *run_id, void *callback_data)
 {
-    return (isAppRunning( spAppNetflix, NULL )) ? kDIALStatusRunning : kDIALStatusStopped;
+    int pid = isAppRunning( spAppNetflix, NULL );
+    DIALStatus ret = kDIALStatusStopped;
+
+    if (pid) {
+      // NOTE - you may need to co "nc -q1 ..." to ensure Gibbon receives the command
+      system("echo '/resources visibility graphics' | nc localhost 9536");
+      sIsSuspended = 1;
+      ret = kDIALStatusHide;
+    } else {
+      sIsSuspended = 0;
+      ret = kDIALStatusStopped;
+    }
+	
+    return ret;
 }
 
 DIALStatus netflix_status(DIALServer *ds, const char *appname,
@@ -117,8 +143,15 @@ DIALStatus netflix_status(DIALServer *ds, const char *appname,
     *pCanStop = 1;
     
     waitpid((pid_t)(long)run_id, NULL, WNOHANG); // reap child
+
+    DIALStatus ret;
+
+    if (isAppRunning( spAppNetflix, NULL )) {
+      ret = sIsSuspended ? kDIALStatusHide : kDIALStatusRunning;
+    } else
+      ret = kDIALStatusStopped;
     
-    return isAppRunning( spAppNetflix, NULL ) ? kDIALStatusRunning : kDIALStatusStopped;
+    return ret;
 }
 
 void netflix_stop(DIALServer *ds, const char *appname, DIAL_run_t run_id,
