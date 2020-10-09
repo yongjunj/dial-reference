@@ -162,6 +162,7 @@ void netflix_stop(DIALServer *ds, const char *appname, DIAL_run_t run_id,
             printf("Killing pid %d\n", pid);
             kill((pid_t)pid, SIGTERM);
             waitpid((pid_t)pid, NULL, 0); // reap child
+            sIsSuspended = 0;
         }
 }
 
